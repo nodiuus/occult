@@ -259,6 +259,7 @@ void display_help() {
                  "                            of a coff object. For a toolchain that\n"
                  "                            names its own libraries, such as\n"
                  "                            mingw-w64, whose ld warns about them\n"
+              << "        --check             Parse and lint only; run nothing (for editors)\n"
               << "  -h,   --help              Show this message\n";
 }
 
@@ -279,7 +280,8 @@ int main(int argc, char* argv[]) {
 #endif
     bool abi_was_given = false;
     bool defaultlibs = true;
-
+    bool check_only = false;
+    
     std::string filenameout;
     std::vector<std::string> prog_args;
     std::vector<std::string> load_libs;
@@ -337,6 +339,9 @@ int main(int argc, char* argv[]) {
         }
         else if (arg == "--no-drectve") {
             defaultlibs = false;
+        }
+        else if (arg == "--check") {
+            check_only = true;
         }
         else if (arg == "-h" || arg == "--help") {
             display_help();
@@ -444,7 +449,10 @@ int main(int argc, char* argv[]) {
         std::cerr << RED << "[OCCULTC] Linting failed \u2014 " << linter.get_errors().size() << " error(s)" << RESET << "\n";
         return 1;
     }
-
+    if (check_only) {
+        return 0;
+    }
+    
     start = std::chrono::high_resolution_clock::now();
     occult::ir_gen ir_gen(cst.get(), parser.get_custom_type_map(), debug);
     auto ir_structs = ir_gen.lower_structs();
